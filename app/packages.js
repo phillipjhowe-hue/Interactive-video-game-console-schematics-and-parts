@@ -203,7 +203,13 @@
       <text x="150" y="186" font-size="10" fill="#9fc7ad" text-anchor="middle">Card / slot</text>`;
   }
 
-  const map = { dip, qfp, bga, sop, to220, crystal, edge, port, drive, hdd, ssd, psu, fan, battery, module: module_, controller, display, card };
+  function fuse(c) {
+    return `<rect x="70" y="72" width="160" height="56" rx="6" fill="#f2efe6" filter="url(#f-sh)"/><rect x="58" y="72" width="34" height="56" rx="3" fill="url(#g-metal)"/><rect x="208" y="72" width="34" height="56" rx="3" fill="url(#g-metal)"/>
+      <text x="150" y="108" font-size="22" font-weight="bold" fill="#333" text-anchor="middle" font-family="Consolas,monospace">${esc(c.marking || c.rating || "")}</text>
+      <text x="150" y="160" font-size="12" fill="#d9dde2" text-anchor="middle">${esc(c.ref || "")} · ${esc(c.rating || "")}</text>
+      <text x="150" y="182" font-size="10" fill="#9fc7ad" text-anchor="middle">SMD fuse (board marking shown)</text>`;
+  }
+  const map = { fuse, dip, qfp, bga, sop, to220, crystal, edge, port, drive, hdd, ssd, psu, fan, battery, module: module_, controller, display, card };
 
   window.renderPackage = function (c) {
     const f = map[c.pkg] || module_;

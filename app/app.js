@@ -15,7 +15,9 @@
   const css = getComputedStyle(document.documentElement);
   const catColor = k => css.getPropertyValue((CAT[k] || CAT.io)[1]).trim();
 
-  const state = { console: null, sel: null, view: "block", maker: "All", vb: null };
+  const state = { console: null, sel: null, view: "block", maker: "All", vb: null, schMode: "board", editing: false, armed: null, photo: null };
+  const partsOf = k => [...k.comps, ...(k.fuses || [])];
+  const findPart = id => partsOf(state.console).find(x => x.id === id);
 
   // ------------------------------------------------------------- links
   const enc = encodeURIComponent;
@@ -76,8 +78,10 @@
     $("#cBoard").textContent = "Board / revision covered: " + k.board;
     $("#cSummary").textContent = k.summary;
     try { localStorage.setItem("atlas:last", id); } catch (_) { }
+    state.editing = false; state.photo = null;
     renderList(); renderView(true);
     if (compId) selectComp(compId); else showDetail(null);
+    loadBoardPhoto(k).then(() => { if (state.console === k && state.view === "schematic") renderView(state.schMode === "photo"); else updateInsideBar(); });
     const active = $(".c-item.active"); if (active) active.scrollIntoView({ block: "nearest" });
   }
 
@@ -88,10 +92,13 @@
     $("#partsTable").hidden = !isParts;
     $("#zoomCtl").style.visibility = isParts ? "hidden" : "visible";
     $("#hint").hidden = isParts;
-    $("#canvasWrap").classList.toggle("paper", state.view === "schematic");
+    $("#canvasWrap").classList.toggle("paper", state.view === "schematic" && state.schMode === "lines");
+    $("#canvasWrap").classList.toggle("mat", state.view === "schematic" && state.schMode !== "lines");
+    $("#insideBar").hidden = state.view !== "schematic";
+    updateInsideBar();
     $("#legend").hidden = isParts;
     if (state.view === "block") renderBlock(k);
-    else if (state.view === "schematic") renderSchematic(k);
+    else if (state.view === "schematic") { if (state.schMode === "lines") renderSchematic(k); else if (state.schMode === "photo" && state.photo) renderPhoto(k); else renderInside(k); }
     else renderParts(k);
     renderLegend(k);
     if (!isParts && fit) fitView();
@@ -175,6 +182,7 @@
   function refDes(k) {
     const n = {}, out = {};
     [...k.comps].sort((a, b) => a.y - b.y || a.x - b.x).forEach(c => { const p = refPrefix(c); n[p] = (n[p] || 0) + 1; out[c.id] = p + n[p]; });
+    (k.fuses || []).forEach(f => out[f.id] = f.ref);
     return out;
   }
   function busWidth(label) {
@@ -257,10 +265,92 @@
     svg.innerHTML = `<g id="content">${border}${wires}${ics}${nets}${tb}</g>`;
   }
 
+  // ------------------------------------------------------------- inside view / board photo
+  function renderInside(k) {
+    svg.setAttribute("class", "board" + (state.callouts === false ? " nocallouts" : ""));
+    svg.innerHTML = `<g id="content">${renderBoard(k, refDes(k), catColor)}</g>`;
+  }
+  function renderPhoto(k) {
+    svg.setAttribute("class", "board photo" + (state.editing ? " editmode" : "") + (state.callouts === false ? " nocallouts" : ""));
+    svg.innerHTML = `<g id="content">${renderPhotoBoard(k, refDes(k), state.photo, getSpots(k), state.editing)}</g>`;
+  }
+  function getSpots(k) {
+    let sp = null; try { sp = JSON.parse(localStorage.getItem("atlas:spots:" + k.id) || "null"); } catch (_) { }
+    if (!sp) {
+      sp = {};
+      const pr = k.photoPreset, ph = state.photo;
+      if (pr && ph && ph.consoleId === k.id && Math.abs(ph.w / ph.h - pr.w / pr.h) < 0.03) {
+        const f = ph.w / pr.w;
+        for (const [id, [x, y]] of Object.entries(pr.spots)) sp[id.toLowerCase()] = [Math.round((x - 9) * f), Math.round((y - 7) * f), Math.round(18 * f), Math.round(14 * f)];
+      }
+    }
+    return sp;
+  }
+  function saveSpots(k, sp) { try { localStorage.setItem("atlas:spots:" + k.id, JSON.stringify(sp)); } catch (_) { } }
+  async function loadBoardPhoto(k) {
+    let url = null;
+    if (bridge) { try { url = await bridge.getPhoto("board/" + k.id); } catch (_) { } }
+    else { try { url = localStorage.getItem("atlas:board:" + k.id); } catch (_) { } }
+    if (!url) { state.photo = null; return; }
+    const img = new Image(); img.src = url; await img.decode().catch(() => { });
+    state.photo = { url, w: img.naturalWidth, h: img.naturalHeight, consoleId: k.id };
+  }
+  function updateInsideBar() {
+    document.querySelectorAll("#insideBar [data-mode]").forEach(b => b.classList.toggle("on", b.dataset.mode === state.schMode));
+    const hasPhoto = !!(state.photo && state.photo.consoleId === state.console.id);
+    $("#btnPhotoImport").textContent = hasPhoto ? "Replace photo" : "Import board photo";
+    $("#btnPhotoEdit").hidden = !(hasPhoto && state.schMode === "photo");
+    $("#btnPhotoEdit").textContent = state.editing ? "Done placing" : "Place hotspots";
+    $("#btnPhotoRemove").hidden = !(hasPhoto && state.schMode === "photo");
+    $("#btnCallouts").hidden = state.schMode === "lines";
+    $("#btnCallouts").classList.toggle("on", state.callouts !== false);
+    $("#photoEmpty").hidden = !(state.view === "schematic" && state.schMode === "photo" && !hasPhoto);
+    $("#hotspotPanel").hidden = !(state.editing && state.schMode === "photo" && hasPhoto && state.view === "schematic");
+  }
+  function renderHotspotPanel() {
+    const k = state.console, sp = getSpots(k), refs = refDes(k);
+    $("#hotspotPanel").innerHTML = `<div class="hp-title">Pick a part, then drag a box around it on the photo</div>` + partsOf(k).map(p =>
+      `<button data-id="${p.id}" class="${state.armed === p.id ? "armed" : ""} ${sp[p.id] ? "done" : ""}"><b>${refs[p.id]}</b> ${esc(p.name)}${sp[p.id] ? ' <span title="Remove" data-clear="' + p.id + '">✕</span>' : ""}</button>`).join("");
+    updateInsideBar();
+  }
+  $("#hotspotPanel").addEventListener("click", e => {
+    const clr = e.target.closest("[data-clear]");
+    if (clr) { const sp = getSpots(state.console); delete sp[clr.dataset.clear]; saveSpots(state.console, sp); renderView(false); renderHotspotPanel(); return; }
+    const b = e.target.closest("button[data-id]"); if (b) { state.armed = b.dataset.id; renderHotspotPanel(); }
+  });
+  $("#insideBar").addEventListener("click", async e => {
+    const m = e.target.closest("[data-mode]");
+    if (m) { state.schMode = m.dataset.mode; state.editing = false; renderView(true); return; }
+    if (e.target.id === "btnCallouts") { state.callouts = state.callouts === false; renderView(false); return; }
+    if (e.target.id === "btnPhotoImport" || e.target.id === "btnPhotoImport2") return importBoardPhoto();
+    if (e.target.id === "btnPhotoEdit") { state.editing = !state.editing; if (state.editing) { const sp = getSpots(state.console); state.armed = (partsOf(state.console).find(p => !sp[p.id]) || {}).id || null; renderHotspotPanel(); } renderView(false); return; }
+    if (e.target.id === "btnPhotoRemove") {
+      if (bridge) await bridge.removePhoto("board/" + state.console.id); else { try { localStorage.removeItem("atlas:board:" + state.console.id); } catch (_) { } }
+      state.photo = null; state.editing = false; renderView(true);
+    }
+  });
+  $("#photoEmpty").addEventListener("click", e => { if (e.target.id === "btnPhotoImport2") importBoardPhoto(); });
+  async function importBoardPhoto() {
+    const k = state.console;
+    if (bridge) { const ok = await bridge.pickPhoto("board/" + k.id); if (!ok) return; }
+    else {
+      const f = await new Promise(res => { const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.onchange = () => res(inp.files[0]); inp.click(); });
+      if (!f) return; const url = await new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(f); });
+      try { localStorage.setItem("atlas:board:" + k.id, url); } catch (_) { state.photo = null; }
+      window.__pendingBoard = url;
+    }
+    await loadBoardPhoto(k);
+    if (!state.photo && window.__pendingBoard) { const img = new Image(); img.src = window.__pendingBoard; await img.decode(); state.photo = { url: img.src, w: img.naturalWidth, h: img.naturalHeight, consoleId: k.id }; }
+    state.schMode = "photo"; state.editing = true;
+    const sp = getSpots(k); state.armed = (partsOf(k).find(p => !sp[p.id]) || {}).id || null;
+    renderView(true); renderHotspotPanel(); toast("Board photo added — now place the hotspots");
+  }
+  window.__atlasPhoto = async (url) => { const img = new Image(); img.src = url; await img.decode(); state.photo = { url, w: img.naturalWidth, h: img.naturalHeight, consoleId: state.console.id }; };
+
   // ------------------------------------------------------------- parts table
   function renderParts(k) {
     const refs = refDes(k);
-    const rows = [...k.comps].sort((a, b) => refs[a.id].localeCompare(refs[b.id], undefined, { numeric: true })).map(c => `
+    const rows = partsOf(k).sort((a, b) => refs[a.id].localeCompare(refs[b.id], undefined, { numeric: true })).map(c => `
       <tr data-id="${c.id}" class="${state.sel === c.id ? "sel" : ""}">
         <td class="ref">${refs[c.id]}</td>
         <td><b>${esc(c.name)}</b></td>
@@ -276,12 +366,13 @@
   // ------------------------------------------------------------- selection
   function selectComp(id) {
     state.sel = id; highlight();
-    const c = state.console.comps.find(x => x.id === id); showDetail(c);
+    const c = findPart(id); showDetail(c);
     document.querySelectorAll("#partsTable tr").forEach(tr => tr.classList.toggle("sel", tr.dataset.id === id));
   }
   function highlight(hoverId) {
     const id = hoverId || state.sel, svg = $("#diagram");
-    svg.classList.toggle("dim", !!id && state.view === "block");
+    svg.classList.toggle("dim", !!id && (state.view === "block" || (state.view === "schematic" && state.schMode === "board")));
+    svg.querySelectorAll(".callout").forEach(cl => cl.classList.toggle("hot", cl.dataset.for === id));
     const near = new Set();
     svg.querySelectorAll(".edge, .wg").forEach(e => {
       const hot = id && (e.dataset.a === id || e.dataset.b === id);
@@ -303,7 +394,7 @@
     $("#compUse").textContent = c.use;
     $("#notesWrap").hidden = !c.notes; $("#compNotes").textContent = c.notes;
     // connections
-    const links = k.links.filter(l => l.a === c.id || l.b === c.id);
+    const links = c.fuse ? [{ a: c.id, b: c.near, label: "protects" }] : k.links.filter(l => l.a === c.id || l.b === c.id);
     $("#compLinks").innerHTML = links.map(l => { const o = k.comps.find(x => x.id === (l.a === c.id ? l.b : l.a)); return `<button data-id="${o.id}">${esc(o.name)}<small>${esc(l.label)}</small></button>`; }).join("") || '<span style="color:var(--muted)">—</span>';
     // buy
     const q = queryFor(c, k);
@@ -322,14 +413,27 @@
     if (bridge) { try { photo = await bridge.getPhoto(key); } catch (_) { } }
     else { try { photo = localStorage.getItem("atlas:photo:" + key); } catch (_) { } }
     if (state.sel !== c.id) return;
+    const spot = state.photo && state.photo.consoleId === k.id ? getSpots(k)[c.id] : null;
     if (photo) {
       $("#compImage").innerHTML = `<img alt="" src="${esc(photo)}">`;
       $("#imgCaption").textContent = "Your photo.";
+    } else if (spot) {
+      const [x, y, w, h] = spot, pad = Math.max(w, h) * 0.6 + 20;
+      let vw = w + pad * 2, vh = h + pad * 2; if (vw / vh > 1.5) vh = vw / 1.5; else vw = vh * 1.5;
+      const vx = x + w / 2 - vw / 2, vy = y + h / 2 - vh / 2;
+      $("#compImage").innerHTML = `<svg viewBox="${vx} ${vy} ${vw} ${vh}" preserveAspectRatio="xMidYMid slice"><image href="${state.photo.url}" width="${state.photo.w}" height="${state.photo.h}"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="#ff3b30" stroke-width="${Math.max(1.5, vw / 150)}" rx="3"/></svg>`;
+      $("#imgCaption").textContent = "Cropped from your board photo.";
     } else {
       $("#compImage").innerHTML = renderPackage(c);
       $("#imgCaption").textContent = "Illustration of the package type with its marking — open “Photos of this part” for real photos, or add your own.";
     }
     $("#btnRemovePhoto").hidden = !photo;
+    // how to replace
+    const ht = getHowTo(c, k);
+    $("#howto").innerHTML = `<div class="ht-meta"><span class="lvl lvl-${ht.level.split(" ")[0].toLowerCase()}">${esc(ht.level)}</span><span>⏱ ${esc(ht.time)}</span>${ht.generic ? '<span class="ht-gen">General procedure for this part type</span>' : ""}</div>
+      ${ht.tools && ht.tools.length ? `<div class="ht-tools">${ht.tools.map(t => `<span>${esc(t)}</span>`).join("")}</div>` : ""}
+      <ol>${ht.steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol>${ht.warn ? `<div class="ht-warn">⚠ ${esc(ht.warn)}</div>` : ""}
+      <button class="link-btn" data-url="https://www.youtube.com/results?search_query=${enc(k.short + " " + c.name + " replacement")}">Watch replacement videos ↗</button>`;
     // notes
     try { $("#userNotes").value = localStorage.getItem("atlas:note:" + key) || ""; } catch (_) { $("#userNotes").value = ""; }
   }
@@ -343,15 +447,15 @@
   $("#btnAddPhoto").onclick = async () => {
     if (!state.sel) return;
     const key = `${state.console.id}/${state.sel}`;
-    if (bridge) { const ok = await bridge.pickPhoto(key); if (ok) { toast("Photo saved"); showDetail(state.console.comps.find(x => x.id === state.sel)); } return; }
+    if (bridge) { const ok = await bridge.pickPhoto(key); if (ok) { toast("Photo saved"); showDetail(findPart(state.sel)); } return; }
     const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*";
-    inp.onchange = () => { const f = inp.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { localStorage.setItem("atlas:photo:" + key, r.result); } catch (_) { toast("Image too large"); } showDetail(state.console.comps.find(x => x.id === state.sel)); }; r.readAsDataURL(f); };
+    inp.onchange = () => { const f = inp.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { localStorage.setItem("atlas:photo:" + key, r.result); } catch (_) { toast("Image too large"); } showDetail(findPart(state.sel)); }; r.readAsDataURL(f); };
     inp.click();
   };
   $("#btnRemovePhoto").onclick = async () => {
     const key = `${state.console.id}/${state.sel}`;
     if (bridge) await bridge.removePhoto(key); else { try { localStorage.removeItem("atlas:photo:" + key); } catch (_) { } }
-    showDetail(state.console.comps.find(x => x.id === state.sel));
+    showDetail(findPart(state.sel));
   };
   $("#btnSchematicSearch").onclick = () => { const k = state.console; openExternal(`https://www.google.com/search?q=${enc(k.name + " " + k.board.split(/[ ,(]/)[0] + " schematic pdf")}`); };
   $("#btnGuides").onclick = () => openExternal(`https://www.ifixit.com/Search?query=${enc(state.console.name)}`);
@@ -377,7 +481,26 @@
   }
   svg.addEventListener("wheel", e => { e.preventDefault(); zoom(e.deltaY > 0 ? 1.12 : 1 / 1.12, e.clientX, e.clientY); }, { passive: false });
   let drag = null;
-  svg.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY, vb: { ...state.vb }, moved: false }; });
+  function svgPt(e) { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); }
+  let drawRect = null;
+  svg.addEventListener("pointerdown", e => {
+    if (state.editing && state.armed && state.view === "schematic" && state.schMode === "photo") {
+      const p = svgPt(e); drawRect = { x0: p.x, y0: p.y, el: document.createElementNS(SVGNS, "rect") };
+      drawRect.el.setAttribute("class", "drawing"); svg.querySelector("#content").appendChild(drawRect.el); return;
+    }
+    drag = { x: e.clientX, y: e.clientY, vb: { ...state.vb }, moved: false };
+  });
+  window.addEventListener("pointermove", e => {
+    if (!drawRect) return; const p = svgPt(e);
+    const x = Math.min(p.x, drawRect.x0), y = Math.min(p.y, drawRect.y0), w = Math.abs(p.x - drawRect.x0), h = Math.abs(p.y - drawRect.y0);
+    Object.entries({ x, y, width: w, height: h }).forEach(([a, v]) => drawRect.el.setAttribute(a, v)); drawRect.r = [x, y, w, h];
+  });
+  window.addEventListener("pointerup", () => {
+    if (!drawRect) return; const r = drawRect.r; drawRect = null;
+    if (r && r[2] > 4 && r[3] > 4) { const sp = getSpots(state.console); sp[state.armed] = r.map(v => Math.round(v)); saveSpots(state.console, sp);
+      const next = partsOf(state.console).find(p => !sp[p.id]); state.armed = next ? next.id : null; renderView(false); renderHotspotPanel(); }
+    else renderView(false);
+  });
   window.addEventListener("pointermove", e => {
     if (!drag) return;
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
@@ -406,7 +529,7 @@
   });
 
   // ------------------------------------------------------------- global search
-  const index = DATA.flatMap(k => k.comps.map(c => ({ k, c, hay: `${k.name} ${k.short} ${c.name} ${c.pn} ${CAT[c.cat][0]} ${c.use}`.toLowerCase() })));
+  const index = DATA.flatMap(k => [...k.comps, ...(k.fuses || [])].map(c => ({ k, c, hay: `${k.name} ${k.short} ${c.name} ${c.pn} ${CAT[c.cat][0]} ${c.use}`.toLowerCase() })));
   let results = [], rsel = 0;
   const sInput = $("#globalSearch"), sBox = $("#searchResults");
   function doSearch() {
@@ -435,9 +558,23 @@
   document.addEventListener("click", e => { if (!e.target.closest(".search")) sBox.hidden = true; });
   document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); sInput.focus(); sInput.select(); } });
 
+  // ------------------------------------------------------------- version / what's new
+  $("#btnVersion").textContent = "v" + window.ATLAS_VERSION;
+  function showWhatsNew() {
+    $("#changelogBody").innerHTML = window.ATLAS_CHANGELOG.map(r => `<section class="rel"><div class="rel-head"><b>v${r.version}</b><span>${r.date}</span><em>${esc(r.title)}</em></div>
+      <ul>${r.changes.map(([t, d]) => `<li><span class="kind k-${t.toLowerCase()}">${t}</span>${esc(d)}</li>`).join("")}</ul></section>`).join("");
+    $("#whatsNew").hidden = false;
+    try { localStorage.setItem("atlas:seenVersion", window.ATLAS_VERSION); } catch (_) { }
+  }
+  $("#btnVersion").onclick = showWhatsNew;
+  $("#btnCloseNew").onclick = () => $("#whatsNew").hidden = true;
+  $("#whatsNew").addEventListener("click", e => { if (e.target.id === "whatsNew") $("#whatsNew").hidden = true; });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") $("#whatsNew").hidden = true; });
+  { let seen = null; try { seen = localStorage.getItem("atlas:seenVersion"); } catch (_) { } if (seen && seen !== window.ATLAS_VERSION) showWhatsNew(); else if (!seen) { try { localStorage.setItem("atlas:seenVersion", window.ATLAS_VERSION); } catch (_) { } } }
+
   // ------------------------------------------------------------- boot
   renderMakers(); renderList();
   let last = null; try { last = localStorage.getItem("atlas:last"); } catch (_) { }
   selectConsole(DATA.some(k => k.id === last) ? last : DATA[0].id);
-  window.__atlas = { state, selectConsole, selectComp, setView: v => document.querySelector(`.tab[data-view="${v}"]`).click() };
+  window.__atlas = { state, selectConsole, selectComp, renderView, getSpots, setView: v => document.querySelector(`.tab[data-view="${v}"]`).click() };
 })();

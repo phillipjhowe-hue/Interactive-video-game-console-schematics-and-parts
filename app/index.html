@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand">
     <svg viewBox="0 0 32 32" class="logo" aria-hidden="true"><rect x="5" y="5" width="22" height="22" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><rect x="11" y="11" width="10" height="10" fill="currentColor"/><g stroke="currentColor" stroke-width="2"><path d="M10 1v4M16 1v4M22 1v4M10 27v4M16 27v4M22 27v4M1 10h4M1 16h4M1 22h4M27 10h4M27 16h4M27 22h4"/></g></svg>
-    <div><div class="title">Console Repair Atlas</div><div class="subtitle">Block diagrams · schematics · part numbers · replacement sources</div></div>
+    <div><div class="title">Console Repair Atlas <button id="btnVersion" class="ver" title="What's new"></button></div><div class="subtitle">Block diagrams · schematics · part numbers · replacement sources</div></div>
   </div>
   <div class="search">
     <input id="globalSearch" type="search" placeholder="Search every console for a part, chip or part number…  (Ctrl+K)" autocomplete="off">
@@ -40,7 +40,7 @@
 
     <div class="tabs" role="tablist">
       <button class="tab active" data-view="block" role="tab">Block diagram</button>
-      <button class="tab" data-view="schematic" role="tab">Schematic</button>
+      <button class="tab" data-view="schematic" role="tab">Schematic / inside view</button>
       <button class="tab" data-view="parts" role="tab">Parts list</button>
       <div class="tab-spacer"></div>
       <div class="zoom" id="zoomCtl">
@@ -53,6 +53,19 @@
     <section class="canvas-wrap" id="canvasWrap">
       <svg id="diagram" xmlns="http://www.w3.org/2000/svg"></svg>
       <div id="partsTable" class="parts-table" hidden></div>
+      <div id="insideBar" class="inside-bar" hidden>
+        <div class="seg"><button data-mode="board">Inside view</button><button data-mode="photo">Real board photo</button><button data-mode="lines">Line schematic</button></div>
+        <button id="btnCallouts" class="chipbtn">Callouts</button>
+        <button id="btnPhotoImport" class="chipbtn">Import board photo</button>
+        <button id="btnPhotoEdit" class="chipbtn accent" hidden>Place hotspots</button>
+        <button id="btnPhotoRemove" class="chipbtn" hidden>Remove photo</button>
+      </div>
+      <div id="photoEmpty" class="photo-empty" hidden>
+        <h3>Add a real photo of this board</h3>
+        <p>Import a photo of the open console or bare motherboard (your own, or a reference image you've saved). Then drag a box around each part. Every box becomes clickable, gets a red callout, and its crop becomes the part's real picture.</p>
+        <button id="btnPhotoImport2" class="chipbtn accent">Import board photo…</button>
+      </div>
+      <div id="hotspotPanel" class="hotspot-panel" hidden></div>
       <div class="legend" id="legend"></div>
       <div class="hint" id="hint">Click any component · scroll to zoom · drag to pan</div>
     </section>
@@ -85,6 +98,8 @@
       </div>
       <h3>Connected to</h3>
       <div id="compLinks" class="chips"></div>
+      <h3>How to replace it</h3>
+      <div id="howto" class="howto"></div>
       <h3>Where to get a replacement</h3>
       <p class="buy-hint" id="buyHint"></p>
       <div id="buyLinks" class="buy-grid"></div>
@@ -96,8 +111,12 @@
   </aside>
 </div>
 <div class="toast" id="toast" hidden></div>
+<div class="modal-back" id="whatsNew" hidden><div class="modal"><div class="modal-head"><h2>What's new</h2><button id="btnCloseNew" class="chipbtn">Close</button></div><div id="changelogBody"></div></div></div>
+<script src="changelog.js"></script>
 <script src="data.js"></script>
 <script src="packages.js"></script>
+<script src="board.js"></script>
+<script src="howto.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

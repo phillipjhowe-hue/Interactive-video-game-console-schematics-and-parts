@@ -49,7 +49,25 @@ window.ATLAS_DATA = [
     "notes": "#1 NES failure: the 'blinking red light'. Clean, re-bend (boil) pins, or replace with a new 72-pin connector.",
     "q": "NES 72 pin connector",
     "src": "mech",
-    "verify": false
+    "verify": false,
+    "howto": {
+     "level": "Easy",
+     "time": "20–30 min",
+     "tools": [
+      "Phillips screwdriver",
+      "Isopropyl alcohol 99%",
+      "Cotton swabs"
+     ],
+     "steps": [
+      "Unplug the NES. Remove the 6 screws on the bottom and lift off the top shell.",
+      "Remove the screws holding the RF shield and cartridge tray, then lift the tray and board assembly out.",
+      "Slide the 72-pin connector straight off the edge of the motherboard — it is press-fit, not soldered.",
+      "Push the new connector onto the board edge with even pressure until fully seated.",
+      "Re-install the tray; don't over-tighten its screws. Clean your cartridges' contacts too — dirty carts wear connectors.",
+      "Test with a cartridge before closing the shell."
+     ],
+     "warn": "Avoid 'boiling' a connector with bent-open pins — it fixes contact but wears carts faster."
+    }
    },
    {
     "id": "psu",
@@ -77,7 +95,24 @@ window.ATLAS_DATA = [
     "notes": "Lifting pin 4 disables it and cures many blinking problems on worn connectors.",
     "q": "NES 3193A CIC",
     "src": "custom",
-    "verify": false
+    "verify": false,
+    "howto": {
+     "level": "Moderate",
+     "time": "15 min",
+     "tools": [
+      "Soldering iron",
+      "Desoldering braid",
+      "Small flat screwdriver or tweezers"
+     ],
+     "steps": [
+      "Remove the board as for the 72-pin connector.",
+      "Locate the 3193A (16-pin DIP) near the cartridge connector.",
+      "Heat pin 4 from the underside and gently lift it so it no longer touches its pad.",
+      "Clean the pad; make sure the lifted pin isn't touching anything.",
+      "Reassemble and test: the console now ignores the lockout handshake (no more blinking from lockout)."
+     ],
+     "warn": "This disables region lockout; it doesn't replace a dead CIC."
+    }
    },
    {
     "id": "cpu",
@@ -885,7 +920,25 @@ window.ATLAS_DATA = [
     "notes": "Recapping Model 1 boards improves audio and stability.",
     "q": "L7805CV",
     "src": "std",
-    "verify": false
+    "verify": false,
+    "howto": {
+     "level": "Easy",
+     "time": "20 min",
+     "tools": [
+      "Soldering iron",
+      "Desoldering pump",
+      "Thermal paste",
+      "Multimeter"
+     ],
+     "steps": [
+      "Remove the board.",
+      "Desolder the 7805's 3 legs and unscrew it from the heatsink.",
+      "Fit the new regulator (IN–GND–OUT, same orientation) with fresh thermal paste.",
+      "Solder, then measure 5 V at the output before plugging in a game.",
+      "While you're in there, consider a full recap (Console5 sells kits)."
+     ],
+     "warn": ""
+    }
    },
    {
     "id": "z80",
@@ -1705,7 +1758,25 @@ window.ATLAS_DATA = [
     "notes": "Skipping/no-read = dirty lens, worn laser, or bad sled; KSM-440AEM is the usual replacement for 5501/7501.",
     "q": "KSM-440ADM",
     "src": "mech",
-    "verify": true
+    "verify": true,
+    "howto": {
+     "level": "Moderate",
+     "time": "30–45 min",
+     "tools": [
+      "Phillips screwdriver",
+      "Soldering iron (to remove the laser's ESD solder bridge)",
+      "Isopropyl alcohol",
+      "White lithium grease"
+     ],
+     "steps": [
+      "Unplug, remove the 6 bottom screws and the top shell.",
+      "Disconnect the laser ribbon cable and remove the sled's worm-gear assembly screws.",
+      "Transfer the gear rail to the new laser (KSM-440 variant for your model).",
+      "Connect the ribbon, THEN remove the solder bridge on the new laser's ESD pad.",
+      "Clean the rails, apply a light coat of grease, test a game before closing."
+     ],
+     "warn": "Leave the ESD solder bridge on until the ribbon is connected, or static can kill the new laser."
+    }
    },
    {
     "id": "psu",
@@ -2106,7 +2177,19 @@ window.ATLAS_DATA = [
     "notes": "No Jumper Pak = black screen.",
     "q": "N64 Expansion Pak",
     "src": "mech",
-    "verify": false
+    "verify": false,
+    "howto": {
+     "level": "Easy",
+     "time": "2 min",
+     "tools": [],
+     "steps": [
+      "Power off.",
+      "Remove the memory-expansion lid on top of the console.",
+      "Pull out the Jumper Pak, push in the Expansion Pak (or vice versa) until it clicks.",
+      "Replace the lid."
+     ],
+     "warn": "Never power on with the slot empty — it won't boot."
+    }
    },
    {
     "id": "rdram",
@@ -2703,7 +2786,331 @@ window.ATLAS_DATA = [
     "b": "fan",
     "label": "12 V"
    }
-  ]
+  ],
+  "fuses": [
+   {
+    "id": "f1",
+    "ref": "F1",
+    "name": "Fuse F1 (6.3A)",
+    "pn": "SMD fuse 6.3A",
+    "rating": "6.3A",
+    "marking": "",
+    "cat": "power",
+    "pkg": "fuse",
+    "use": "Emotion Engine supply",
+    "near": "ee",
+    "notes": "",
+    "q": "6.3A SMD fuse",
+    "src": "std",
+    "verify": false,
+    "fuse": true
+   },
+   {
+    "id": "ps1",
+    "ref": "PS1",
+    "name": "Fuse PS1 (0.4A)",
+    "pn": "SMD fuse 0.4A",
+    "rating": "0.4A",
+    "marking": "",
+    "cat": "power",
+    "pkg": "fuse",
+    "use": "3.3 V regulator (12 V input)",
+    "near": "psu",
+    "notes": "",
+    "q": "0.4A SMD fuse",
+    "src": "std",
+    "verify": false,
+    "fuse": true
+   },
+   {
+    "id": "ps2",
+    "ref": "PS2",
+    "name": "Fuse PS2 (0.4A)",
+    "pn": "SMD fuse 0.4A",
+    "rating": "0.4A",
+    "marking": "",
+    "cat": "power",
+    "pkg": "fuse",
+    "use": "12 V rail",
+    "near": "hdd",
+    "notes": "HDD not detected / blank: check PS10 and PS2 (12 V).",
+    "q": "0.4A SMD fuse",
+    "src": "std",
+    "verify": false,
+    "fuse": true
+   },
+   {
+    "id": "ps3",
+    "ref": "PS3",
+    "name": "Fuse PS3 (2.5A)",
+    "pn": "SMD fuse 2.5A, marking 63",
+    "rating": "2.5A",
+    "marking": "63",
+    "cat": "power",
+    "pkg": "fuse",
+    "use": "12 V from power board",
+    "near": "psu",
+    "notes": "",
+    "q": "2.5A SMD fuse 63",
+    "src": "std",
+    "verify": false,
+    "fuse": true
+   },
+   {
+    "id": "ps4",
+    "ref": "PS4",
+    "name": "Fuse PS4 (2.5A)",
+    "pn": "SMD fuse 2.5A, marking 63",
+    "rating": "2.5A",
+    "marking": "63",
+    "cat": "power",
+    "pkg": "fuse",
+    "use": "5 V regulator",
+    "near": "psu",
+    "notes": "",
+    "q": "2.5A SMD fuse 63",
+    "src": "std",
+    "verify": false,
+    "fuse": true
+   },
+   {
+    "id": "ps5",
+    "ref": "PS5",
+    "name": "Fuse PS5 (0.7A)",
+    "pn": "SMD fuse 0.7A, marking S7",
+    "rating": "0.7A",
+    "marking": "S7",
+    "cat": "power",
+    "pkg": "fuse",
+    "use": "12 V fan driver",
+    "near": "fan",
+    "notes": "",
+    "q": "0.7A SMD fuse S7",
+    "src": "std",
+    "verify": false,
+    "fuse": true
+   },
+   {
+    "id": "ps6",
+    "ref": "PS6",
+    "name": "Fuse PS6 (0.7A)",
+    "pn": "SMD fuse 0.7A, marking S7",
+    "rating": "0.7A",
+    "marking": "S7",
+    "cat": "power",
+    "pkg": "fuse",
+    "use": "5 V switching regulator",
+    "near": "psu",
+    "notes": "",
+    "q": "0.7A SMD fuse S7",
+    "src": "std",
+    "verify": false,
+    "fuse": true
+   },
+   {
+    "id": "ps7",
+    "ref": "PS7",
+    "name": "Fuse PS7 (0.7A)",
+    "pn": "SMD fuse 0.7A, marking S7",
+    "rating": "0.7A",
+    "marking": "S7",
+    "cat": "power",
+    "pkg": "fuse",
+    "use": "8 V regulator (12 V input)",
+    "near": "psu",
+    "notes": "",
+    "q": "0.7A SMD fuse S7",
+    "src": "std",
+    "verify": false,
+    "fuse": true
+   },
+   {
+    "id": "ps8",
+    "ref": "PS8",
+    "name": "Fuse PS8 (1.2A)",
+    "pn": "SMD fuse 1.2A, marking S2",
+    "rating": "1.2A",
+    "marking": "S2",
+    "cat": "power",
+    "pkg": "fuse",
+    "use": "3.5 V regulator (5 V input)",
+    "near": "psu",
+    "notes": "",
+    "q": "1.2A SMD fuse S2",
+    "src": "std",
+    "verify": false,
+    "fuse": true
+   },
+   {
+    "id": "ps9",
+    "ref": "PS9",
+    "name": "Fuse PS9 (2A)",
+    "pn": "SMD fuse 2A, marking 50",
+    "rating": "2A",
+    "marking": "50",
+    "cat": "power",
+    "pkg": "fuse",
+    "use": "5 V supply for HDD",
+    "near": "hdd",
+    "notes": "",
+    "q": "2A SMD fuse 50",
+    "src": "std",
+    "verify": false,
+    "fuse": true
+   },
+   {
+    "id": "ps10",
+    "ref": "PS10",
+    "name": "Fuse PS10 (2A)",
+    "pn": "SMD fuse 2A, marking 50",
+    "rating": "2A",
+    "marking": "50",
+    "cat": "power",
+    "pkg": "fuse",
+    "use": "12 V supply for HDD",
+    "near": "hdd",
+    "notes": "HDD not detected / blank: check PS10 and PS2 (12 V).",
+    "q": "2A SMD fuse 50",
+    "src": "std",
+    "verify": false,
+    "fuse": true
+   },
+   {
+    "id": "ps11",
+    "ref": "PS11",
+    "name": "Fuse PS11 (2A)",
+    "pn": "SMD fuse 2A, marking 50",
+    "rating": "2A",
+    "marking": "50",
+    "cat": "power",
+    "pkg": "fuse",
+    "use": "12 V focus, sled & tracking IC (drive)",
+    "near": "dvd",
+    "notes": "",
+    "q": "2A SMD fuse 50",
+    "src": "std",
+    "verify": false,
+    "fuse": true
+   },
+   {
+    "id": "ps12",
+    "ref": "PS12",
+    "name": "Fuse PS12 (1.2A)",
+    "pn": "SMD fuse 1.2A, marking S2",
+    "rating": "1.2A",
+    "marking": "S2",
+    "cat": "power",
+    "pkg": "fuse",
+    "use": "12 V spindle driver IC (drive)",
+    "near": "dvd",
+    "notes": "",
+    "q": "1.2A SMD fuse S2",
+    "src": "std",
+    "verify": false,
+    "fuse": true
+   },
+   {
+    "id": "ps13",
+    "ref": "PS13",
+    "name": "Fuse PS13 (0.7A)",
+    "pn": "SMD fuse 0.7A",
+    "rating": "0.7A",
+    "marking": "",
+    "cat": "power",
+    "pkg": "fuse",
+    "use": "5 V regulator (12 V input)",
+    "near": "psu",
+    "notes": "",
+    "q": "0.7A SMD fuse",
+    "src": "std",
+    "verify": false,
+    "fuse": true
+   },
+   {
+    "id": "ps14",
+    "ref": "PS14",
+    "name": "Fuse PS14 (2A)",
+    "pn": "SMD fuse 2A, marking 50",
+    "rating": "2A",
+    "marking": "50",
+    "cat": "power",
+    "pkg": "fuse",
+    "use": "3.4 V regulator",
+    "near": "psu",
+    "notes": "",
+    "q": "2A SMD fuse 50",
+    "src": "std",
+    "verify": false,
+    "fuse": true
+   }
+  ],
+  "fuseBoard": "GH-019",
+  "photoPreset": {
+   "w": 988,
+   "h": 697,
+   "spots": {
+    "PS11": [
+     24,
+     90
+    ],
+    "PS8": [
+     398,
+     168
+    ],
+    "PS10": [
+     432,
+     152
+    ],
+    "PS9": [
+     455,
+     152
+    ],
+    "PS5": [
+     468,
+     214
+    ],
+    "PS3": [
+     568,
+     178
+    ],
+    "PS7": [
+     448,
+     232
+    ],
+    "PS2": [
+     462,
+     226
+    ],
+    "PS4": [
+     420,
+     322
+    ],
+    "PS6": [
+     503,
+     328
+    ],
+    "F1": [
+     574,
+     323
+    ],
+    "PS1": [
+     558,
+     344
+    ],
+    "PS13": [
+     128,
+     398
+    ],
+    "PS12": [
+     62,
+     483
+    ],
+    "PS14": [
+     558,
+     458
+    ]
+   }
+  }
  },
  {
   "id": "xbox",
@@ -2810,7 +3217,25 @@ window.ATLAS_DATA = [
     "notes": "LEAKS and eats traces. Remove it on every v1.0/1.1 board.",
     "q": "Xbox clock capacitor",
     "src": "std",
-    "verify": false
+    "verify": false,
+    "howto": {
+     "level": "Easy",
+     "time": "15 min",
+     "tools": [
+      "Flush cutters",
+      "Isopropyl alcohol",
+      "Soft brush",
+      "Multimeter"
+     ],
+     "steps": [
+      "Unplug, open the case (screws under rubber feet and labels) and remove the DVD drive and HDD.",
+      "Find the barrel capacitor near the CPU/RTC area (v1.0–v1.1).",
+      "Clip it off at the legs — it's not needed for normal use.",
+      "If it has leaked, clean the residue thoroughly with isopropyl and a brush; inspect nearby traces for corrosion and check continuity.",
+      "Reassemble. The clock just resets after the power cable is unplugged."
+     ],
+     "warn": "Leaked electrolyte keeps corroding — clean it even if the console still works."
+    }
    },
    {
     "id": "smc",
@@ -3315,7 +3740,26 @@ window.ATLAS_DATA = [
     "notes": "Original X-clamps flex the board; replacement kits help but don't cure RROD.",
     "q": "Xbox 360 X-clamp",
     "src": "mech",
-    "verify": false
+    "verify": false,
+    "howto": {
+     "level": "Moderate",
+     "time": "1–1.5 h",
+     "tools": [
+      "T8/T10 Torx",
+      "Flat screwdriver",
+      "Isopropyl alcohol",
+      "Thermal paste",
+      "Bolt-through or replacement clamp kit"
+     ],
+     "steps": [
+      "Disassemble to the motherboard.",
+      "Pop the X-clamps off the back with a flat screwdriver and remove the heatsinks.",
+      "Clean old thermal compound from CPU, GPU and heatsinks with isopropyl.",
+      "Apply fresh paste; reinstall heatsinks with the replacement clamp kit, tightening evenly in a cross pattern.",
+      "Reassemble and stress test."
+     ],
+     "warn": "Clamp kits don't cure a failed GPU solder joint — a lasting fix needs a reball."
+    }
    },
    {
     "id": "fan",
@@ -4300,7 +4744,28 @@ window.ATLAS_DATA = [
     "notes": "Most common board repair (bent pins / broken port).",
     "q": "PS4 HDMI port",
     "src": "mech",
-    "verify": false
+    "verify": false,
+    "howto": {
+     "level": "Advanced",
+     "time": "45–90 min",
+     "tools": [
+      "Hot-air station + preheater",
+      "Soldering iron (fine tip)",
+      "Flux",
+      "Leaded solder",
+      "Low-melt solder",
+      "Microscope"
+     ],
+     "steps": [
+      "Unplug and fully disassemble to the motherboard (remove PSU, drive, heatsink).",
+      "Inspect the HDMI encoder/retimer area for damage; a broken port often takes pins with it.",
+      "Add low-melt solder to the port's shield legs and pins; preheat the board from below.",
+      "Heat with hot air and lift the old port; clean pads with braid and flux.",
+      "Place the new port, solder the shell legs, then drag-solder the signal pins; check every pin for bridges under magnification.",
+      "Reassemble and test video at several resolutions."
+     ],
+     "warn": "If there's still no video, the HDMI retimer chip is the next suspect."
+    }
    },
    {
     "id": "flash",
@@ -4593,7 +5058,28 @@ window.ATLAS_DATA = [
     "notes": "Notorious failure with third-party docks: no charge / no dock video.",
     "q": "M92T36",
     "src": "custom",
-    "verify": false
+    "verify": false,
+    "howto": {
+     "level": "Expert",
+     "time": "1–2 h",
+     "tools": [
+      "Hot-air station + preheater",
+      "Microscope",
+      "Flux",
+      "Low-melt solder",
+      "Kapton tape",
+      "Multimeter / USB-C power meter"
+     ],
+     "steps": [
+      "Remove the battery connector first.",
+      "Disassemble to the bare motherboard (back plate, heatsink, game-card reader, shield).",
+      "Measure the USB-C rail resistance to ground and test BQ24193 and PI3USB30532 — they often fail together.",
+      "Mask nearby parts with Kapton; preheat the board; remove the M92T36 (QFN) with hot air and flux.",
+      "Clean and tin pads, place the new chip (pin 1 dot), reflow with hot air until it self-aligns.",
+      "Check for shorts, reassemble partially, and test charging and docked video with a USB-C meter."
+     ],
+     "warn": "Use only official/spec-compliant docks afterwards — bad docks are the usual cause."
+    }
    },
    {
     "id": "mux",
@@ -5341,7 +5827,27 @@ window.ATLAS_DATA = [
     "notes": "Most common board repair.",
     "q": "PS5 HDMI port",
     "src": "mech",
-    "verify": false
+    "verify": false,
+    "howto": {
+     "level": "Advanced",
+     "time": "1–2 h",
+     "tools": [
+      "Hot-air station + preheater",
+      "Fine-tip iron",
+      "Flux",
+      "Low-melt solder",
+      "Microscope",
+      "Liquid-metal kit (if heatsink removed)"
+     ],
+     "steps": [
+      "Unplug and disassemble to the motherboard, keeping the liquid-metal shield flat and undisturbed.",
+      "Preheat the board, add low-melt solder to all port pins and shell legs, remove the port with hot air.",
+      "Clean pads; check for torn pads (repair with jumper wire if needed).",
+      "Fit the new port, solder shell legs then signal pins, inspect for bridges.",
+      "Test video before full reassembly; if still no video, inspect the MN864739 retimer."
+     ],
+     "warn": "Don't tilt the APU shield: loose liquid metal can short components."
+    }
    },
    {
     "id": "sb",
