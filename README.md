@@ -6,6 +6,12 @@ Interactive Windows app with block diagrams, board views, part numbers, repair s
 
 Get the latest Windows build from **[Releases](../../releases)**: download `ConsoleRepairAtlas-vX.Y.Z-win64.zip`, unzip the whole folder and run `Console Repair Atlas.exe`. Windows 10/11 64-bit, nothing to install. The exe isn't code-signed, so SmartScreen may ask you to click **More info → Run anyway**.
 
+### Previous versions
+
+| Version | Download | Notes |
+|---|---|---|
+| v1.0.0 | [previous-versions/v1.0.0](previous-versions/v1.0.0) | First release. Stored as 3 parts; double-click `JOIN-PARTS.bat` to rebuild the zip. |
+
 ## Features
 
 - 24 consoles, 297 components: NES, Master System, TurboGrafx-16, Genesis, SNES, Saturn, PlayStation, N64, Dreamcast, PS2, Xbox, GameCube, Xbox 360, PS3, Wii, Wii U, PS4, Xbox One, Switch, Xbox Series X, Xbox Series S, PS5, Switch 2, Steam Machine
