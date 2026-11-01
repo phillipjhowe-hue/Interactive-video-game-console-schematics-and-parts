@@ -1,0 +1,7 @@
+{
+  "name": "console-repair-atlas",
+  "productName": "Console Repair Atlas",
+  "version": "1.0.0",
+  "description": "Interactive block diagrams, schematics, part numbers and replacement sources for video game consoles from the NES to today.",
+  "main": "main.js"
+}

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' file: data:; style-src 'self' 'unsafe-inline'; script-src 'self'">
+<title>Console Repair Atlas</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" class="logo" aria-hidden="true"><rect x="5" y="5" width="22" height="22" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><rect x="11" y="11" width="10" height="10" fill="currentColor"/><g stroke="currentColor" stroke-width="2"><path d="M10 1v4M16 1v4M22 1v4M10 27v4M16 27v4M22 27v4M1 10h4M1 16h4M1 22h4M27 10h4M27 16h4M27 22h4"/></g></svg>
+    <div><div class="title">Console Repair Atlas</div><div class="subtitle">Block diagrams · schematics · part numbers · replacement sources</div></div>
+  </div>
+  <div class="search">
+    <input id="globalSearch" type="search" placeholder="Search every console for a part, chip or part number…  (Ctrl+K)" autocomplete="off">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="filter-row" id="makerFilter"></div>
+    <div id="consoleList" class="console-list"></div>
+  </nav>
+
+  <main class="main">
+    <section class="console-head">
+      <div>
+        <div class="eyebrow" id="cMeta"></div>
+        <h1 id="cName"></h1>
+        <div class="board" id="cBoard"></div>
+        <p class="summary" id="cSummary"></p>
+      </div>
+      <div class="head-actions">
+        <button class="ghost" id="btnSchematicSearch" title="Search the web for full schematics of this console">Find full schematics ↗</button>
+        <button class="ghost" id="btnGuides" title="Open repair guides">Repair guides ↗</button>
+      </div>
+    </section>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-view="block" role="tab">Block diagram</button>
+      <button class="tab" data-view="schematic" role="tab">Schematic</button>
+      <button class="tab" data-view="parts" role="tab">Parts list</button>
+      <div class="tab-spacer"></div>
+      <div class="zoom" id="zoomCtl">
+        <button id="zoomOut" title="Zoom out">−</button>
+        <button id="zoomFit" title="Fit to window">Fit</button>
+        <button id="zoomIn" title="Zoom in">+</button>
+      </div>
+    </div>
+
+    <section class="canvas-wrap" id="canvasWrap">
+      <svg id="diagram" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="partsTable" class="parts-table" hidden></div>
+      <div class="legend" id="legend"></div>
+      <div class="hint" id="hint">Click any component · scroll to zoom · drag to pan</div>
+    </section>
+  </main>
+
+  <aside class="detail" id="detail">
+    <div class="empty" id="detailEmpty">
+      <div class="empty-icon">⌁</div>
+      <p>Select a component in the diagram to see its image, part number, what it does and where to buy a replacement.</p>
+    </div>
+    <div id="detailBody" hidden>
+      <div class="img-frame" id="compImage"></div>
+      <div class="img-actions">
+        <span class="img-caption" id="imgCaption"></span>
+        <button class="link-btn" id="btnAddPhoto">Add your photo</button>
+        <button class="link-btn" id="btnRemovePhoto" hidden>Remove photo</button>
+      </div>
+      <div class="cat-tag" id="compCat"></div>
+      <h2 id="compName"></h2>
+      <div class="pn-row">
+        <code id="compPN"></code>
+        <button class="copy" id="btnCopy" title="Copy part number">Copy</button>
+      </div>
+      <div class="verify" id="compVerify" hidden>Part number varies by board revision — confirm against the marking on your chip or the label on your part before ordering.</div>
+      <h3>What it does</h3>
+      <p id="compUse"></p>
+      <div id="notesWrap">
+        <h3>Repair notes</h3>
+        <p id="compNotes"></p>
+      </div>
+      <h3>Connected to</h3>
+      <div id="compLinks" class="chips"></div>
+      <h3>Where to get a replacement</h3>
+      <p class="buy-hint" id="buyHint"></p>
+      <div id="buyLinks" class="buy-grid"></div>
+      <h3>Research</h3>
+      <div id="researchLinks" class="buy-grid small"></div>
+      <h3>Your notes</h3>
+      <textarea id="userNotes" placeholder="Notes for this part (saved on this PC)…"></textarea>
+    </div>
+  </aside>
+</div>
+<div class="toast" id="toast" hidden></div>
+<script src="data.js"></script>
+<script src="packages.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+dist/
+build_base/
+*.zip
+node_modules/
+__pycache__/
