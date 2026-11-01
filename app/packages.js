@@ -209,7 +209,36 @@
       <text x="150" y="160" font-size="12" fill="#d9dde2" text-anchor="middle">${esc(c.ref || "")} · ${esc(c.rating || "")}</text>
       <text x="150" y="182" font-size="10" fill="#9fc7ad" text-anchor="middle">SMD fuse (board marking shown)</text>`;
   }
-  const map = { fuse, dip, qfp, bga, sop, to220, crystal, edge, port, drive, hdd, ssd, psu, fan, battery, module: module_, controller, display, card };
+  function res_th(c) {
+    const H = window.passiveColors || {};
+    const b = (c.bands || []).map((col, i) => `<rect x="${112 + i * 20}" y="78" width="10" height="44" fill="${H[col] || "#000"}"/>`).join("");
+    return `<line x1="20" y1="100" x2="280" y2="100" stroke="url(#g-pin)" stroke-width="5"/><rect x="92" y="76" width="116" height="48" rx="22" fill="#e3cfa3" filter="url(#f-sh)"/>${b}
+      <text x="150" y="160" font-size="14" font-weight="bold" fill="#d9dde2" text-anchor="middle" font-family="Consolas,monospace">${esc(c.value)}</text>
+      <text x="150" y="182" font-size="10" fill="#9fc7ad" text-anchor="middle">Axial resistor · bands ${esc((c.bands || []).join("-"))}</text>`;
+  }
+  function chip(c) {
+    const res = c.kind === "res";
+    return `<rect x="85" y="70" width="130" height="62" rx="4" fill="${res ? "#16181b" : "#b8996a"}" filter="url(#f-sh)"/><rect x="72" y="70" width="30" height="62" rx="3" fill="url(#g-metal)"/><rect x="198" y="70" width="30" height="62" rx="3" fill="url(#g-metal)"/>
+      ${res && c.size !== "0402" ? `<text x="150" y="110" font-size="24" font-weight="bold" fill="#e6e9ee" text-anchor="middle" font-family="Consolas,monospace">${esc(c.code)}</text>` : ""}
+      <text x="150" y="160" font-size="14" font-weight="bold" fill="#d9dde2" text-anchor="middle" font-family="Consolas,monospace">${esc(c.value)}</text>
+      <text x="150" y="182" font-size="10" fill="#9fc7ad" text-anchor="middle">${res ? "SMD chip resistor" : "MLCC ceramic chip capacitor"} · ${esc(c.size || "")}</text>`;
+  }
+  function cap_disc(c) {
+    return `<line x1="132" y1="120" x2="132" y2="175" stroke="url(#g-pin)" stroke-width="4"/><line x1="168" y1="120" x2="168" y2="175" stroke="url(#g-pin)" stroke-width="4"/>
+      <ellipse cx="150" cy="88" rx="52" ry="46" fill="#e0a43a" filter="url(#f-sh)"/><text x="150" y="96" font-size="22" font-weight="bold" fill="#3a2a10" text-anchor="middle" font-family="Consolas,monospace">${esc(c.code)}</text>
+      <text x="150" y="192" font-size="10" fill="#9fc7ad" text-anchor="middle">Ceramic disc capacitor · ${esc(c.value)}</text>`;
+  }
+  function cap_elec(c) {
+    const poly = c.pkg === "cap_poly";
+    return `<line x1="132" y1="150" x2="132" y2="185" stroke="url(#g-pin)" stroke-width="4"/><line x1="168" y1="150" x2="168" y2="178" stroke="url(#g-pin)" stroke-width="4"/>
+      <rect x="104" y="24" width="92" height="128" rx="10" fill="${poly ? "#5b2a86" : "#1d3a7a"}" filter="url(#f-sh)"/><rect x="104" y="24" width="20" height="128" fill="#c9d3dd" opacity=".85"/>
+      ${poly ? "" : [44, 70, 96, 122].map(y => `<text x="114" y="${y}" font-size="16" fill="#1d3a7a" text-anchor="middle" font-weight="bold">−</text>`).join("")}
+      <text x="160" y="80" font-size="15" font-weight="bold" fill="#fff" text-anchor="middle" font-family="Consolas,monospace">${esc(c.uf)}µF</text>
+      <text x="160" y="102" font-size="13" fill="#fff" text-anchor="middle" font-family="Consolas,monospace">${esc(c.volts)}V</text>
+      <text x="160" y="124" font-size="10" fill="#cfd8e3" text-anchor="middle">105°C</text>
+      <text x="150" y="193" font-size="10" fill="#9fc7ad" text-anchor="middle">${poly ? "Solid polymer capacitor" : "Electrolytic capacitor · stripe = negative (−) lead"}</text>`;
+  }
+  const map = { res_th, res_smd: chip, cap_mlcc: chip, cap_disc, cap_elec, cap_poly: cap_elec, fuse, dip, qfp, bga, sop, to220, crystal, edge, port, drive, hdd, ssd, psu, fan, battery, module: module_, controller, display, card };
 
   window.renderPackage = function (c) {
     const f = map[c.pkg] || module_;

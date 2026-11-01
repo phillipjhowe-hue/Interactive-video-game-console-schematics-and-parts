@@ -10,6 +10,7 @@ Get the latest Windows build from **[Releases](../../releases)**: download `Cons
 
 | Version | Download | Notes |
 |---|---|---|
+| v1.1.0 | [previous-versions/v1.1.0](previous-versions/v1.1.0) | Inside view, board-photo hotspots, how-to-replace steps, PS2 fuses. Stored as 3 parts; double-click `JOIN-PARTS.bat`. |
 | v1.0.0 | [previous-versions/v1.0.0](previous-versions/v1.0.0) | First release. Stored as 3 parts; double-click `JOIN-PARTS.bat` to rebuild the zip. |
 
 ## Features
@@ -18,6 +19,7 @@ Get the latest Windows build from **[Releases](../../releases)**: download `Cons
 - Clickable block diagram and parts list for every console
 - **Inside view**: the open console drawn with the board, chips, traces, red callouts and a Ref / Function legend
 - **Real board photo mode**: import a board photo, drag a box around each part, and get clickable hotspots whose crops become the part pictures
+- **Clickable resistors & capacitors** on the inside view: value, color bands / SMD code, what it does, how to test and replace it, where to buy (representative values)
 - **How to replace it**: difficulty, time, tools, steps and safety warnings for every part
 - PS2 GH-019 board fuse map (F1, PS1–PS14)
 - Each part shows its picture, part number, what it does, repair notes, and buttons that search replacement-part sellers
@@ -36,6 +38,7 @@ Part numbers marked ⚠ vary by board revision. Check the marking on your own ch
 | `CHANGELOG.md` | Version history (also shown in the app under the version badge). |
 | `app/changelog.js` | Source of the version number and change log. The top entry is the current version. |
 | `tools/build.sh` | Builds the versioned Windows zip. |
+| `tools/archive_version.sh` | Stores a superseded build under `previous-versions/` in parts. |
 
 ## Running from source
 

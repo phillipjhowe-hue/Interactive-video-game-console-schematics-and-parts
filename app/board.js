@@ -225,8 +225,8 @@
     return out;
   };
 
-  window.renderBoard = function (k, refs, catColor) {
-    const R = rng(k.id), pcb = pcbColor(k), shell = SHELL[k.id] || "#222";
+  function boardGeo(k) {
+    const R = rng(k.id + ":layout");
     const CW = 248, CH = 182, OX = 110, OY = 110;
     const cols = Math.max(...k.comps.map(c => c.x)) + 1, rows = Math.max(...k.comps.map(c => c.y)) + 1;
     const BW = cols * CW + 40, BH = rows * CH + 40, bx = OX - 20, by = OY - 20;
@@ -236,6 +236,13 @@
       const jx = (R() - 0.5) * 18, jy = (R() - 0.5) * 12;
       geo[c.id] = { cx: OX + c.x * CW + CW / 2 + jx, cy: OY + c.y * CH + CH / 2 + jy, w, h };
     }
+    return { geo, CW, CH, OX, OY, BW, BH, bx, by };
+  }
+  window.boardGeo = boardGeo;
+
+  window.renderBoard = function (k, refs, catColor) {
+    const R = rng(k.id), pcb = pcbColor(k), shell = SHELL[k.id] || "#222";
+    const L = boardGeo(k), geo = { ...L.geo }, { CW, CH, OX, OY, BW, BH, bx, by } = L;
     const inside = (x, y, m) => Object.values(geo).some(g => Math.abs(x - g.cx) < g.w / 2 + m && Math.abs(y - g.cy) < g.h / 2 + m);
 
     // shell (opened case)
@@ -284,21 +291,33 @@
     });
     out += `<g class="traces">${tr}</g>`;
 
-    // decorative passives
-    let dec = "";
+    // resistors & capacitors (clickable)
+    const pas = window.getPassives(k, geo, { x: bx, y: by, w: BW, h: BH });
     const capBody = k.year < 2000 ? (k.id === "genesis" || k.id === "sms" ? "#1a1a1a" : "#1d3a7a") : "#1a1a1a";
-    for (let i = 0, placed = 0; i < 400 && placed < 26; i++) {
-      const x = bx + 34 + R() * (BW - 68), y = by + 34 + R() * (BH - 68), r = 9 + R() * 7;
-      if (inside(x, y, r + 8)) continue; placed++;
-      dec += `<g filter="url(#bd-sh)"><circle cx="${x}" cy="${y}" r="${r}" fill="${capBody}"/><path d="M${x - r * 0.98} ${y - r * 0.2} A${r} ${r} 0 0 1 ${x - r * 0.2} ${y - r * 0.98}" stroke="#d8dde2" stroke-width="${r * 0.35}" fill="none" opacity=".8"/>
-        <circle cx="${x}" cy="${y}" r="${r * 0.7}" fill="url(#bd-cap)"/><path d="M${x - r * 0.45} ${y} h${r * 0.9} M${x} ${y - r * 0.45} v${r * 0.9}" stroke="#7f8790" stroke-width="1.2"/></g>
-        <circle cx="${x}" cy="${y}" r="${r + 3}" fill="none" stroke="${pcb.silk}" stroke-opacity=".55" stroke-width="1"/>`;
-    }
-    for (let i = 0, placed = 0; i < 900 && placed < 110; i++) {
-      const x = bx + 20 + R() * (BW - 40), y = by + 20 + R() * (BH - 40);
-      if (inside(x, y, 8)) continue; placed++;
-      const rot = R() > 0.5 ? 90 : 0, res = R() > 0.55;
-      dec += `<g transform="translate(${x} ${y}) rotate(${rot})"><rect x="-6" y="-3" width="12" height="6" fill="${res ? "#16181b" : "#b8996a"}"/><rect x="-7" y="-3" width="3" height="6" fill="#d7dbe0"/><rect x="4" y="-3" width="3" height="6" fill="#d7dbe0"/></g>`;
+    const PC = window.passiveColors;
+    let dec = "";
+    for (const p of pas) {
+      let g = "";
+      if (p.pkg === "cap_elec" || p.pkg === "cap_poly") {
+        const r = p.r, body = p.pkg === "cap_poly" ? "#5b2a86" : capBody;
+        g = `<g filter="url(#bd-sh)"><circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${body}"/><path d="M${p.x - r * 0.98} ${p.y - r * 0.2} A${r} ${r} 0 0 1 ${p.x - r * 0.2} ${p.y - r * 0.98}" stroke="#d8dde2" stroke-width="${r * 0.35}" fill="none" opacity=".8"/>
+          <circle cx="${p.x}" cy="${p.y}" r="${r * 0.7}" fill="url(#bd-cap)"/>${p.pkg === "cap_elec" ? `<path d="M${p.x - r * 0.45} ${p.y} h${r * 0.9} M${p.x} ${p.y - r * 0.45} v${r * 0.9}" stroke="#7f8790" stroke-width="1.2"/>` : ""}</g>
+          <circle cx="${p.x}" cy="${p.y}" r="${r + 3}" fill="none" stroke="${pcb.silk}" stroke-opacity=".55" stroke-width="1"/>`;
+      } else if (p.pkg === "res_th") {
+        const b = p.bands.map((c, i) => `<rect x="${-7 + i * 4.2}" y="-4" width="2.2" height="8" fill="${PC[c]}"/>`).join("");
+        g = `<g transform="translate(${p.x} ${p.y}) rotate(${p.rot})"><circle cx="-15" cy="0" r="2.6" fill="url(#bd-gold)"/><circle cx="15" cy="0" r="2.6" fill="url(#bd-gold)"/><line x1="-15" y1="0" x2="15" y2="0" stroke="#c9ced3" stroke-width="1.4"/>
+          <rect x="-10" y="-4.5" width="20" height="9" rx="4" fill="#e3cfa3" filter="url(#bd-sh)"/>${b}</g>`;
+      } else if (p.pkg === "cap_disc") {
+        g = `<g transform="translate(${p.x} ${p.y}) rotate(${p.rot})"><circle cx="-6" cy="0" r="2.4" fill="url(#bd-gold)"/><circle cx="6" cy="0" r="2.4" fill="url(#bd-gold)"/>
+          <rect x="-9" y="-4" width="18" height="8" rx="4" fill="#e0a43a" filter="url(#bd-sh)"/><text x="0" y="2.6" font-size="6" text-anchor="middle" fill="#3a2a10" font-family="Consolas,monospace">${p.code}</text></g>`;
+      } else {
+        const res = p.kind === "res";
+        g = `<g transform="translate(${p.x} ${p.y}) rotate(${p.rot})"><rect x="-6" y="-3" width="12" height="6" fill="${res ? "#16181b" : "#b8996a"}"/><rect x="-7" y="-3" width="3" height="6" fill="#d7dbe0"/><rect x="4" y="-3" width="3" height="6" fill="#d7dbe0"/>
+          ${res && p.size !== "0402" ? `<text x="0" y="1.8" font-size="4.2" text-anchor="middle" fill="#d9dde2" font-family="Consolas,monospace">${p.code}</text>` : ""}</g>`;
+      }
+      const hr = Math.max(11, (p.r || 9) + 4);
+      dec += `<g class="ic part passive" data-id="${p.id}"><rect class="selbox" x="${p.x - hr}" y="${p.y - hr}" width="${hr * 2}" height="${hr * 2}" rx="5" stroke="${p.kind === "res" ? "#e0b050" : "#5ec8ff"}"/>${g}
+        <rect class="hit" x="${p.x - hr}" y="${p.y - hr}" width="${hr * 2}" height="${hr * 2}" fill="transparent"/><title>${p.ref} · ${p.value} — ${p.use}</title></g>`;
     }
     for (let i = 0; i < 160; i++) { const x = bx + 14 + R() * (BW - 28), y = by + 14 + R() * (BH - 28); if (!inside(x, y, 4)) dec += `<circle cx="${x}" cy="${y}" r="2.2" fill="url(#bd-gold)" opacity=".8"/>`; }
     out += `<g class="passives">${dec}</g>`;

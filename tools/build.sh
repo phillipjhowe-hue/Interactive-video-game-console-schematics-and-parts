@@ -18,6 +18,6 @@ rm -rf dist && mkdir -p "$D" && cp -r build_base/. "$D/" && rm -f "$D/resources/
 mkdir -p "$D/resources/app" && cp app/*.js app/*.html app/*.css app/package.json app/icon.png "$D/resources/app/"
 mv "$D/electron.exe" "$D/Console Repair Atlas.exe"
 for f in README.txt CHANGELOG.txt; do sed 's/$/\r/' $f > "$D/$f"; done
-rm -f ConsoleRepairAtlas-*win64.zip
+rm -f "ConsoleRepairAtlas-v$VER-win64.zip"
 (cd dist && zip -qr -9 "../ConsoleRepairAtlas-v$VER-win64.zip" "Console Repair Atlas")
 echo "Built v$VER"; ls -la ConsoleRepairAtlas-v$VER-win64.zip

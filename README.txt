@@ -1,4 +1,4 @@
-CONSOLE REPAIR ATLAS  v1.1.0
+CONSOLE REPAIR ATLAS  v1.2.0
 (See CHANGELOG.txt or click the version number next to the app title for what changed.)
 ==========================
 
@@ -28,6 +28,9 @@ USING IT
                           gets a red callout, and its crop becomes that part's
                           picture in the side panel.
       Line schematic    - simplified wiring drawing with U1/J1/Y1 references.
+  - Every resistor and capacitor in the Inside view is clickable too (value, color
+    bands / SMD code, what it does, testing, replacement, where to buy). Values are
+    representative - read the marking on your own part before ordering.
   - Every part shows "How to replace it": difficulty, time, tools, numbered steps
     and safety warnings, plus a link to replacement videos.
   - PS2: the 15 board fuses (F1, PS1-PS14 on the GH-019 board) are included with

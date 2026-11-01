@@ -101,6 +101,34 @@
         `Remove the old fuse with hot air (or tweezers iron) and clean the pads.`, `Solder a fuse with exactly the same rating (${c.rating}).`,
         "Power up and check the rail voltage."], warn: "Don't bridge a blown fuse with wire — it was protecting the board from a short." })
   };
+  const PASS = {
+    res_th: c => ({ level: "Easy", time: "5–10 min", tools: ["Soldering iron", "Desoldering pump or braid", "Multimeter", `${c.value} ¼ W resistor`],
+      steps: k => [OPEN(k), `Check the value: bands ${c.bands.join("-")} = ${c.value}. Confirm the marking on your board matches before ordering.`,
+        "Desolder both legs and pull the resistor out.", "Bend the new resistor's legs to the hole spacing — resistors have no polarity, either direction works.",
+        "Solder, trim the legs, and measure across it to confirm the value."], warn: "If the old resistor was burnt, find the shorted part downstream before powering up." }),
+    res_smd: c => ({ level: "Moderate", time: "10 min", tools: ["Fine-tip iron (two irons or tweezer iron helps)", "Flux", "Tweezers", "Magnifier", `${c.value} ${c.size} resistor`],
+      steps: k => [OPEN(k), `Confirm the value${c.code ? ` (marking ${c.code})` : ""} with the silkscreen or by measuring a matching part.`,
+        "Add flux, heat both ends at once (or alternate quickly) and slide the resistor off.", "Clean and lightly tin one pad.",
+        "Hold the new resistor with tweezers, reflow the tinned pad to tack it, then solder the other end.", "Measure the value in place."], warn: "" }),
+    cap_mlcc: c => ({ level: "Moderate", time: "10 min", tools: ["Hot air or tweezer iron", "Flux", "Tweezers", "Multimeter", `${c.value} ${c.volts} V ${c.size} capacitor`],
+      steps: k => [OPEN(k), "If it's shorted: measure that rail to ground, inject a little current from a bench supply and find the warm capacitor.",
+        "Flux and remove it with hot air or a tweezer iron.", "Check the rail is no longer shorted before fitting a new one.",
+        "Fit the same capacitance, same or higher voltage, same dielectric (X7R/C0G). No polarity.", "Re-measure the rail, then power up."], warn: "Ceramic capacitors crack if the board flexes — support the board when working." }),
+    cap_disc: c => ({ level: "Easy", time: "5–10 min", tools: ["Soldering iron", "Desoldering pump or braid", `${c.value} ${c.volts} V ceramic capacitor`],
+      steps: k => [OPEN(k), `Read the marking (${c.code} = ${c.value}).`, "Desolder both legs and remove.", "Fit the replacement (no polarity), solder and trim."], warn: "" }),
+    cap_elec: c => ({ level: "Easy", time: "5–10 min per cap", tools: ["Soldering iron", "Desoldering pump or braid", "Isopropyl alcohol", `${c.uf} µF ${c.volts} V 105 °C radial capacitor (or a full recap kit)`],
+      steps: k => [OPEN(k), "Photograph the board first — note which side of each capacitor has the stripe (negative).",
+        "Desolder both legs and remove the capacitor; clean any leaked electrolyte from the pads with isopropyl.",
+        `Fit a ${c.uf} µF capacitor with the same or higher voltage (≥ ${c.volts} V), 105 °C, matching the footprint diameter.`,
+        "Put the stripe (−) on the same side as the original / the shaded half of the silkscreen.", "Solder, trim, and replace capacitors one at a time so you never mix up positions."],
+      warn: "Polarity matters: a reversed electrolytic can bulge or burst. Discharge large capacitors before touching." }),
+    cap_poly: c => ({ level: "Moderate", time: "15 min", tools: ["Hot-air station or iron", "Flux", "Desoldering braid", `${c.uf} µF ${c.volts} V polymer capacitor`],
+      steps: k => [OPEN(k), "Note the polarity marking (bar = negative or the board's shaded side).", "Remove with hot air or by heating each lead with flux.",
+        "Fit the same capacitance and voltage (or higher) polymer capacitor in the same orientation.", "Check the rail isn't shorted before powering up."],
+      warn: "Polymer caps are polarized — match the orientation." })
+  };
+  Object.assign(G, PASS);
+
   window.getHowTo = function (c, k) {
     if (c.howto) return { ...c.howto, steps: c.howto.steps };
     const g = (G[c.pkg] || G.module)(c);

@@ -1,6 +1,17 @@
 // Version history. Newest first. The top entry is the current version.
 window.ATLAS_CHANGELOG = [
   {
+    version: "1.2.0", date: "2026-11-01", title: "Clickable resistors & capacitors",
+    changes: [
+      ["New", "Every resistor and capacitor in the Inside view is clickable, with its reference (R12, C34), value, rating, package, color bands or SMD code, what it does in that circuit, how to test it, how to replace it and where to buy it."],
+      ["New", "Era-accurate parts: axial color-banded resistors and ceramic disc capacitors on 1980s–early-90s boards, SMD chips on later boards, radial electrolytics up to 2004 and solid polymer capacitors on modern boards."],
+      ["New", "Recap-kit button on electrolytic capacitors."],
+      ["New", "Resistors & capacitors section in the Parts list."],
+      ["Fixed", "Power supply reference is now PSU1 so it no longer clashes with fuse PS1 on the PS2."],
+      ["Note", "Resistor and capacitor values are representative for each circuit (no per-board parts lists). Each one says so — read the value on your actual part before ordering."]
+    ]
+  },
+  {
     version: "1.1.0", date: "2026-11-01", title: "Inside the console",
     changes: [
       ["New", "Inside view: each console drawn with the top cover off — shell, circuit board, real-looking chip packages with their markings, copper traces, capacitors and red callout bubbles with a Ref / Function legend."],

@@ -3,7 +3,7 @@
   --text:#e6e9ee; --muted:#8b95a5; --dim:#5d6676; --accent:#f2a93b; --accent2:#ffcf7a;
   --cpu:#e5574f; --gpu:#a16cf0; --mem:#3fa7f5; --audio:#e86fb4; --video:#33c3b0; --power:#f2a93b;
   --storage:#7a8cff; --io:#7ccf5b; --security:#d9d24a; --clock:#c58a5a; --media:#4fd0e8;
-  --paper:#f6f3ea; --ink:#1d2a44;
+  --resistor:#e0b050; --capacitor:#5ec8ff; --paper:#f6f3ea; --ink:#1d2a44;
   font-family: "Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
 }
 *{box-sizing:border-box}
@@ -220,3 +220,8 @@ textarea{width:100%;min-height:80px;background:var(--bg);color:var(--text);borde
 .rel li{margin:6px 0;line-height:1.45;color:#cfd5de;display:flex;gap:10px}
 .kind{flex:none;font-size:10.5px;font-weight:700;text-transform:uppercase;border-radius:5px;padding:2px 6px;height:fit-content;color:#111;min-width:66px;text-align:center}
 .k-new{background:#7ccf5b}.k-improved{background:#3fa7f5}.k-fixed{background:#f2c94c}.k-changed{background:#a16cf0;color:#fff}
+
+.board .passive{cursor:pointer}
+.board .passive .selbox{stroke-width:2.5}
+.parts-table tr.sect td{background:#161c25;color:var(--accent2);font-weight:600;font-size:12px;cursor:default}
+.k-note{background:#8b95a5}

@@ -10,14 +10,16 @@
   const CAT = {
     cpu: ["CPU / processor", "--cpu"], gpu: ["Graphics", "--gpu"], mem: ["Memory", "--mem"], audio: ["Audio", "--audio"],
     video: ["Video output", "--video"], power: ["Power / cooling", "--power"], storage: ["Storage / firmware", "--storage"],
-    io: ["I/O / interface", "--io"], security: ["Security / lockout", "--security"], clock: ["Clock", "--clock"], media: ["Media / drive", "--media"]
+    io: ["I/O / interface", "--io"], security: ["Security / lockout", "--security"], clock: ["Clock", "--clock"], media: ["Media / drive", "--media"],
+    resistor: ["Resistor", "--resistor"], capacitor: ["Capacitor", "--capacitor"]
   };
   const css = getComputedStyle(document.documentElement);
   const catColor = k => css.getPropertyValue((CAT[k] || CAT.io)[1]).trim();
 
   const state = { console: null, sel: null, view: "block", maker: "All", vb: null, schMode: "board", editing: false, armed: null, photo: null };
   const partsOf = k => [...k.comps, ...(k.fuses || [])];
-  const findPart = id => partsOf(state.console).find(x => x.id === id);
+  const passivesOf = k => (window.getPassives && getPassives(k)) || [];
+  const findPart = id => partsOf(state.console).find(x => x.id === id) || passivesOf(state.console).find(x => x.id === id);
 
   // ------------------------------------------------------------- links
   const enc = encodeURIComponent;
@@ -174,7 +176,7 @@
     if (c.pkg === "crystal") return "Y";
     if (c.pkg === "battery") return "BT";
     if (c.pkg === "fan") return "M";
-    if (c.pkg === "psu") return "PS";
+    if (c.pkg === "psu") return "PSU";
     if (["edge", "port", "card", "controller"].includes(c.pkg)) return "J";
     if (["drive", "hdd", "ssd", "display", "module"].includes(c.pkg)) return "A";
     return "U";
@@ -183,6 +185,7 @@
     const n = {}, out = {};
     [...k.comps].sort((a, b) => a.y - b.y || a.x - b.x).forEach(c => { const p = refPrefix(c); n[p] = (n[p] || 0) + 1; out[c.id] = p + n[p]; });
     (k.fuses || []).forEach(f => out[f.id] = f.ref);
+    passivesOf(k).forEach(p => out[p.id] = p.ref);
     return out;
   }
   function busWidth(label) {
@@ -358,7 +361,10 @@
         <td><span class="dotc" style="background:${catColor(c.cat)}"></span>${CAT[c.cat][0]}</td>
         <td>${esc(c.use)}</td>
       </tr>`).join("");
-    $("#partsTable").innerHTML = `<table><thead><tr><th>Ref</th><th>Component</th><th>Part number</th><th>Type</th><th>What it does</th></tr></thead><tbody>${rows}</tbody></table>
+    const pas = passivesOf(k).slice().sort((a, b) => a.ref.localeCompare(b.ref, undefined, { numeric: true }));
+    const prow = pas.map(c => `<tr data-id="${c.id}" class="${state.sel === c.id ? "sel" : ""}"><td class="ref">${c.ref}</td><td><b>${esc(c.kind === "res" ? "Resistor" : "Capacitor")}</b></td><td class="pn">${esc(c.pn)}</td><td><span class="dotc" style="background:${catColor(c.cat)}"></span>${CAT[c.cat][0]}</td><td>${esc(c.use)}</td></tr>`).join("");
+    $("#partsTable").innerHTML = `<table><thead><tr><th>Ref</th><th>Component</th><th>Part number</th><th>Type</th><th>What it does</th></tr></thead><tbody>${rows}
+      ${pas.length ? `<tr class="sect"><td colspan="5">Resistors & capacitors (${pas.length}) — representative values; open the Inside view to see where each one sits</td></tr>${prow}` : ""}</tbody></table>
       <p style="color:var(--muted);font-size:12px;margin-top:14px">${k.comps.length} components · click a row for image and replacement sources.</p>`;
   }
   $("#partsTable").addEventListener("click", e => { const tr = e.target.closest("tr[data-id]"); if (tr) selectComp(tr.dataset.id); });
@@ -390,17 +396,19 @@
     $("#compCat").textContent = CAT[c.cat][0]; $("#compCat").style.background = catColor(c.cat);
     $("#compName").textContent = c.name;
     $("#compPN").textContent = c.pn;
-    $("#compVerify").hidden = !c.verify;
+    $("#compVerify").hidden = !(c.verify || c.rep);
+    $("#compVerify").textContent = c.rep ? "Representative value: this drawing places typical resistors and capacitors for each circuit. Read the value printed on your part (or its silkscreen label) and order that." : "Part number varies by board revision — confirm against the marking on your chip or the label on your part before ordering.";
     $("#compUse").textContent = c.use;
     $("#notesWrap").hidden = !c.notes; $("#compNotes").textContent = c.notes;
     // connections
-    const links = c.fuse ? [{ a: c.id, b: c.near, label: "protects" }] : k.links.filter(l => l.a === c.id || l.b === c.id);
+    const links = c.passive ? [{ a: c.id, b: c.near, label: "next to" }] : c.fuse ? [{ a: c.id, b: c.near, label: "protects" }] : k.links.filter(l => l.a === c.id || l.b === c.id);
     $("#compLinks").innerHTML = links.map(l => { const o = k.comps.find(x => x.id === (l.a === c.id ? l.b : l.a)); return `<button data-id="${o.id}">${esc(o.name)}<small>${esc(l.label)}</small></button>`; }).join("") || '<span style="color:var(--muted)">—</span>';
     // buy
     const q = queryFor(c, k);
     $("#buyHint").textContent = buyHint(c);
-    $("#buyLinks").innerHTML = vendorsFor(c, k).map(v => `<button data-url="${esc(VENDORS[v][2](q))}"><b>${VENDORS[v][0]} ↗</b><span>${VENDORS[v][1]}</span></button>`).join("");
-    const pn = primaryPN(c.pn);
+    const kit = c.passive && c.kind === "elec" ? `<button data-url="${esc(k.year < 2005 ? VENDORS.console5[2](k.short + " capacitor kit") : VENDORS.ebay[2](k.short + " capacitor kit"))}"><b>${k.short} recap kit ↗</b><span>every electrolytic for this board</span></button>` : "";
+    $("#buyLinks").innerHTML = kit + vendorsFor(c, k).map(v => `<button data-url="${esc(VENDORS[v][2](q))}"><b>${VENDORS[v][0]} ↗</b><span>${VENDORS[v][1]}</span></button>`).join("");
+    const pn = c.passive ? c.q : primaryPN(c.pn);
     const research = [
       ["Datasheet", `https://www.google.com/search?q=${enc(pn + " datasheet pdf")}`],
       ["Photos of this part", `https://www.google.com/search?tbm=isch&q=${enc(k.short + " " + pn)}`],
