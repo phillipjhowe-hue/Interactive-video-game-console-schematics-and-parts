@@ -1,5 +1,13 @@
 # Console Repair Atlas — Changelog
 
+## v1.3.0 — 2026-11-01 — Windows installer
+- **New:** Windows installer (ConsoleRepairAtlas-Setup-v1.3.0.exe). It asks whether you want a desktop icon and a Start menu shortcut, lets you choose the install folder, and offers to launch the app when it finishes.
+- **New:** Installs for your user account only, so no administrator prompt.
+- **New:** Uninstall from Windows Settings › Apps. The uninstaller removes the shortcuts and asks whether to keep or delete your photos and notes.
+- **New:** Installing a newer version over an older one upgrades it in place and keeps your photos and notes.
+- **Improved:** Shortcuts and the Apps list use the Console Repair Atlas icon.
+- **Note:** The portable zip is still available for running without installing.
+
 ## v1.2.0 — 2026-11-01 — Clickable resistors & capacitors
 - **New:** Every resistor and capacitor in the Inside view is clickable, with its reference (R12, C34), value, rating, package, color bands or SMD code, what it does in that circuit, how to test it, how to replace it and where to buy it.
 - **New:** Era-accurate parts: axial color-banded resistors and ceramic disc capacitors on 1980s–early-90s boards, SMD chips on later boards, radial electrolytics up to 2004 and solid polymer capacitors on modern boards.

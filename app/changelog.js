@@ -1,6 +1,17 @@
 // Version history. Newest first. The top entry is the current version.
 window.ATLAS_CHANGELOG = [
   {
+    version: "1.3.0", date: "2026-11-01", title: "Windows installer",
+    changes: [
+      ["New", "Windows installer (ConsoleRepairAtlas-Setup-v1.3.0.exe). It asks whether you want a desktop icon and a Start menu shortcut, lets you choose the install folder, and offers to launch the app when it finishes."],
+      ["New", "Installs for your user account only, so no administrator prompt."],
+      ["New", "Uninstall from Windows Settings › Apps. The uninstaller removes the shortcuts and asks whether to keep or delete your photos and notes."],
+      ["New", "Installing a newer version over an older one upgrades it in place and keeps your photos and notes."],
+      ["Improved", "Shortcuts and the Apps list use the Console Repair Atlas icon."],
+      ["Note", "The portable zip is still available for running without installing."]
+    ]
+  },
+  {
     version: "1.2.0", date: "2026-11-01", title: "Clickable resistors & capacitors",
     changes: [
       ["New", "Every resistor and capacitor in the Inside view is clickable, with its reference (R12, C34), value, rating, package, color bands or SMD code, what it does in that circuit, how to test it, how to replace it and where to buy it."],

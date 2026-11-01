@@ -21,3 +21,15 @@ for f in README.txt CHANGELOG.txt; do sed 's/$/\r/' $f > "$D/$f"; done
 rm -f "ConsoleRepairAtlas-v$VER-win64.zip"
 (cd dist && zip -qr -9 "../ConsoleRepairAtlas-v$VER-win64.zip" "Console Repair Atlas")
 echo "Built v$VER"; ls -la ConsoleRepairAtlas-v$VER-win64.zip
+
+# ---- Windows installer (NSIS). Set NSIS_DIR to an NSIS 3 folder containing linux/makensis (or makensis on PATH).
+NSIS_DIR=${NSIS_DIR:-/home/claude/dl/nsis/nsis}
+MAKENSIS=$(command -v makensis || echo "$NSIS_DIR/linux/makensis")
+if [ -x "$MAKENSIS" ]; then
+  SETUP="ConsoleRepairAtlas-Setup-v$VER.exe"; rm -f "$SETUP"
+  ( cd "$D" && for f in *; do if [ -d "$f" ]; then echo "  RMDir /r \"\$INSTDIR\\$f\""; else echo "  Delete \"\$INSTDIR\\$f\""; fi; done ) > tools/installer/uninstall_files.nsh
+  ( cd tools/installer && NSISDIR="$NSIS_DIR" "$MAKENSIS" -V2 -DVERSION="$VER" -DSRCDIR="$(cd ../.. && pwd)/$D" -DOUTFILE="$(cd ../.. && pwd)/$SETUP" installer.nsi )
+  ls -la "$SETUP"
+else
+  echo "makensis not found - skipped installer"
+fi
